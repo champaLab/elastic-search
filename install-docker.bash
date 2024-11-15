@@ -43,7 +43,7 @@ echo "Docker installed successfully."
 
 # Install Docker Compose
 echo "Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K[0-9.]+')" /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Verify Docker Compose installation
@@ -57,7 +57,13 @@ echo "Docker Compose installed successfully."
 
 # Add the current user to the docker group
 echo "Adding $USER to the docker group..."
-sudo usermod -aG docker $USER
-echo "Please log out and back in for changes to take effect."
+sudo usermod -aG docker $USER 
+newgrp docker 
+docker ps
 
+echo "Please log out and back in for changes to take effect."
 echo "Installation completed! Docker and Docker Compose are ready to use."
+
+sudo chmod +x start.bash
+sudo chmod +x install-docker.bash
+
