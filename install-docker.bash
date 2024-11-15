@@ -75,6 +75,6 @@ echo "Please log out and back in for changes to take effect."
 echo "Installation completed! Docker and Docker Compose are ready to use."
 
 sudo chmod +x start.bash
-./start.bash
+sudo ./start.bash
 
 
