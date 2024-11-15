@@ -12,3 +12,5 @@ sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata03/_data
 
 # view the error logs
 docker logs elk-on-docker-es01-1
+
+sudo chmod +x install-docker.bash

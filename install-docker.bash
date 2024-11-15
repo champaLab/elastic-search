@@ -61,9 +61,20 @@ sudo usermod -aG docker $USER
 newgrp docker 
 docker ps
 
+# Setting on the host machine for Elasticsearch 
+echo "Setting max_map_count for Elasticsearch..."
+sudo sysctl -w vm.max_map_count=262144
+sudo sysctl -p
+
+# Make it persistent across reboots
+echo "Making max_map_count setting persistent..."
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+
+
 echo "Please log out and back in for changes to take effect."
 echo "Installation completed! Docker and Docker Compose are ready to use."
 
 sudo chmod +x start.bash
-sudo chmod +x install-docker.bash
+./start.bash
+
 
