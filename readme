@@ -1,1 +1,14 @@
 chmod +x install-docker.bash
+
+# Removes all volumes defined in docker-compose
+docker-compose down -v
+
+#Identify the Correct Path
+docker volume inspect elk-on-docker_esdata01
+
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata01/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata02/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata03/_data
+
+# view the error logs
+docker logs elk-on-docker-es01-1

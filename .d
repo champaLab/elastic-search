@@ -1,1 +1,0 @@
-HOMEDIR=/Users/lgw
