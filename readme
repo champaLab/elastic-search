@@ -8,19 +8,19 @@ chmod +x start.bash
 docker-compose down -v
 
 #Identify the Correct Path
-docker volume inspect elastic-search-es01-1
+docker volume inspect es01
 
-sudo mkdir -p /var/lib/docker/volumes/elastic-search-es01-1/_data
-sudo mkdir -p /var/lib/docker/volumes/elastic-search-es02-1/_data
-sudo mkdir -p /var/lib/docker/volumes/elastic-search-es03-1/_data
+sudo mkdir -p /var/lib/docker/volumes/es01/_data
+sudo mkdir -p /var/lib/docker/volumes/es02/_data
+sudo mkdir -p /var/lib/docker/volumes/es03/_data
 
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es01-1/_data
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es02-1/_data
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es03-1/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/es01/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/es02/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/es03/_data
 
 # view the error logs  //container-name
-docker logs -f elastic-search-es01-1   
-docker logs -f elastic-search-kibana-1
+docker logs -f es01   
+docker logs -f kibana
 
 
 # sysctl vm.max_map_count

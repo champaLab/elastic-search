@@ -19,6 +19,7 @@ networks:
 
 services:
   setup:
+    container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
