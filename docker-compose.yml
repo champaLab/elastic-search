@@ -86,6 +86,7 @@ services:
       retries: 120
 
   es01:
+    container_name: es01
     depends_on:
       setup:
         condition: service_healthy
@@ -131,6 +132,7 @@ services:
       retries: 120
 
   es02:
+    container_name: es02
     depends_on:
       es01:
         condition: service_healthy
@@ -176,6 +178,7 @@ services:
       retries: 120
 
   es03:
+    container_name: es03
     depends_on:
       es02:
         condition: service_healthy
@@ -221,6 +224,7 @@ services:
       retries: 120
 
   kibana:
+    container_name: kibana
     depends_on:
       es01:
         condition: service_healthy
@@ -253,6 +257,7 @@ services:
       retries: 120
 
   logstash:
+    container_name: logstash
     depends_on:
       es01:
         condition: service_healthy

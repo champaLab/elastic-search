@@ -1,17 +1,26 @@
+# START BY COMMAND : 
 chmod +x install-docker.bash
+chmod +x start.bash
+
+
 
 # Removes all volumes defined in docker-compose
 docker-compose down -v
 
 #Identify the Correct Path
-docker volume inspect elk-on-docker_esdata01
+docker volume inspect elastic-search-es01-1
 
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata01/_data
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata02/_data
-sudo chown -R 1000:1000 /var/lib/docker/volumes/elk-on-docker_esdata03/_data
+sudo mkdir -p /var/lib/docker/volumes/elastic-search-es01-1/_data
+sudo mkdir -p /var/lib/docker/volumes/elastic-search-es02-1/_data
+sudo mkdir -p /var/lib/docker/volumes/elastic-search-es03-1/_data
 
-# view the error logs
-docker logs elk-on-docker-es01-1
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es01-1/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es02-1/_data
+sudo chown -R 1000:1000 /var/lib/docker/volumes/elastic-search-es03-1/_data
+
+# view the error logs  //container-name
+docker logs -f elastic-search-es01-1   
+docker logs -f elastic-search-kibana-1
 
 
 # sysctl vm.max_map_count
