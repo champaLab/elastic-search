@@ -15,7 +15,7 @@ volumes:
 networks:
   default:
     name: elastic
-    external: false
+    external: true
 
 services:
   setup:

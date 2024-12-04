@@ -1,0 +1,191 @@
+# 1. install elasticsearch
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+sudo apt-get install apt-transport-https
+echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+sudo apt-get update && sudo apt-get install elasticsearch
+
+# Protect credentials such as the Elasticsearch username and password using Logstash
+# sudo /usr/share/logstash/bin/logstash-keystore add ES_PWD
+
+# Running Elasticsearch with systemd
+sudo /bin/systemctl daemon-reload
+sudo /bin/systemctl enable elasticsearch.service
+sudo systemctl start elasticsearch.service
+sudo systemctl stop elasticsearch.service
+sudo systemctl status elasticsearch.service
+
+curl --cacert /etc/elasticsearch/certs/http_ca.crt -u elastic:$ELASTIC_PASSWORD https://localhost:9200 
+
+# =================================================================
+# 2. Install Kibana
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+sudo apt-get install apt-transport-https
+echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+sudo apt-get update && sudo apt-get install kibana
+sudo systemctl daemon-reload
+sudo systemctl enable kibana.service
+sudo systemctl start kibana.service
+sudo systemctl status kibana.service
+
+# Edit configuration enable host 
+vi /etc/kibana/kibana.yml
+# server.host: localhost to 0.0.0.0
+
+
+
+
+# =================================================================
+# 3. Install logstash
+
+sudo rm /etc/apt/sources.list.d/elastic-8.x.list
+echo "deb [signed-by=/usr/share/keyrings/elastic-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-keyring.gpg
+sudo apt-get install apt-transport-https
+sudo apt-get update && sudo apt-get install logstash
+
+/usr/share/logstash/bin/logstash --version
+sudo systemctl status logstash
+sudo systemctl start logstash
+
+# logstash version | logstash --version
+echo 'export PATH=$PATH:/usr/share/logstash/bin' >> ~/.bashrc
+source ~/.bashrc 
+
+
+# Directory MOVE TO :: 
+mkdir -p /etc/logstash/certs/ 
+cp -rp /etc/elasticsearch/certs/http_ca.crt  /etc/logstash/certs/http_ca.crt
+
+# check copy successful
+ls -l /etc/logstash/certs/http_ca.crt
+
+# Change the permissions 
+sudo chown -R logstash:logstash /etc/logstash/certs/http_ca.crt 
+
+
+# reset password elastic
+/usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
+# RrUEPhVAW_KOf9bK-cGo
+
+# Create token for kibana
+/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
+# eyJ2ZXIiOiI4LjE0LjAiLCJhZHIiOlsiMTk1LjM1LjIzLjIxMzo5MjAwIl0sImZnciI6IjNiNWI5ODVkNjcxMDY4NDYwYjZkZjYwNzY0MjUzMGZkODI3MzM4YzAzMDEyNzBkYTA5OTBlOWZkNWRjNDY0ZGUiLCJrZXkiOiJWOVdaajVNQjN6M2dLOFJTLTYxXzo3NHVKQi14clF6S0tfQlAwSmFaQWpnIn0=
+
+# verify OTP
+/usr/share/kibana/bin/kibana-verification-code 
+
+# create file config 
+vim /etc/logstash/conf.d/logstash.conf
+input {
+    beats {
+        port => 5044
+        ssl => false
+    }
+}
+
+filter {     
+    if [message] =~ /^{.*}$/ {
+        json {
+            source => "message"
+            target => "NODE_LOG"
+            }
+            if [NODE_LOG][service] {
+                mutate {
+                    add_field => { "[%{[NODE_LOG][service]}]" => "%{[NODE_LOG]}" }
+                }
+        }
+    }
+}
+
+output {
+    elasticsearch {
+        # TODO: Change IP address , password and cacert directory
+        # Directory MOVE TO :: mkdir -p /etc/logstash/certs/ && cp -rp /etc/elasticsearch/certs/http_ca.crt  /etc/logstash/certs/http_ca.crt
+        hosts => ["https://195.35.23.213:9200"]
+        index => "ecs-logstash-%{+YYYY.MM.dd}"
+        user => "elastic"
+        password => "RrUEPhVAW_KOf9bK-cGo"
+        ssl => true
+        cacert => "/etc/logstash/certs/http_ca.crt"
+        ssl_certificate_verification => false
+    }
+}
+
+
+# Test the Configuration
+# sudo -u logstash /usr/share/logstash/bin/logstash --path.settings /etc/logstash -t
+
+# Fix the permissions
+# sudo chmod 644 /etc/elasticsearch/certs/http_ca.crt
+# sudo chown logstash:logstash /etc/elasticsearch/certs/http_ca.crt
+
+
+# Test the Configuration again
+
+
+sudo systemctl restart logstash
+sudo systemctl stop logstash
+sudo systemctl status logstash
+sudo journalctl -u logstash -f
+
+sudo systemctl restart kibana
+sudo systemctl status kibana
+sudo journalctl -u kibana -f
+
+
+
+# =================================================================
+
+# 4. Install filebeat 
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.16.1-amd64.deb
+sudo dpkg -i filebeat-8.16.1-amd64.deb
+
+# Enable logstash
+filebeat modules enable logstash
+
+vi /etc/filebeat/filebeat.yml 
+# change the disable output log elasticsearch change to logstash
+
+# Edit 
+vi /etc/filebeat/modules.d/logstash.yml
+# add
+# - module: logstash
+  # logs
+    # log:
+    #    enabled: true
+    #    var.paths:
+        #   - /logs/*.log
+        #   - /var/log/*.log
+
+# Test configuration filebeat
+sudo filebeat test config
+
+# Test configuration logstash
+sudo /usr/share/logstash/bin/logstash --config.test_and_exit -f /etc/logstash/conf.d/logstash.conf
+
+sudo systemctl daemon-reload
+sudo systemctl stop logstash
+sudo systemctl status logstash
+sudo systemctl status logstash
+sudo systemctl start logstash
+sudo systemctl restart filebeat
+sudo journalctl -u filebeat -f
+
+
+# check port
+sudo lsof -i :5601
+
+
+# Enable firewall 
+sudo ufw enable
+sudo ufw allow 5601/tcp
+sudo ufw allow 22
+sudo ufw allow 9200/tcp
+sudo ufw reload
+
+sudo ufw status
+
+
+# Watch log
+cat /var/log/kibana/kibana.log 
+cat /var/log/logstash/logstash-plain.log 
